@@ -1,4 +1,18 @@
 // =======================
+// CSS Helpers
+// =======================
+function applyPopupStyle(popup, phase) {
+  const validPhases = ["work", "rest", "done"];
+  popup.classList.remove("popup-work", "popup-rest", "popup-done");
+
+  if (validPhases.includes(phase)) {
+    popup.classList.add(`popup-${phase}`);
+  } else {
+    console.warn("Invalid phase for popup style:", phase);
+  }
+}
+
+// =======================
 // Audio Helpers
 // =======================
 
@@ -42,9 +56,9 @@ function stopSound(currentAudio) {
 // =======================
 // Timer Function
 // =======================
-function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next, isPausedObj, config) {
+function startTimer(popup, timerDiv, duration, phase, sound, currentAudio, next, isPausedObj, config) {
   let remaining = duration;
-  popup.style.backgroundColor = color;
+  applyPopupStyle(popup, phase);
 
   const updateDisplay = () => {
     const min = Math.floor(remaining / 60);
@@ -111,7 +125,7 @@ function startRound(config) {
   if (config.currentRound >= config.rounds) {
     config.phaseDiv.textContent = "✅ Done!";
     config.timerDiv.textContent = "0:00";
-    config.popup.style.backgroundColor = "lightgray";
+    applyPopupStyle(config.popup, "done");
     playOnceSound(config.currentAudio, config.doneSound);
     return;
   }
@@ -124,14 +138,14 @@ function startRound(config) {
     config.popup,
     config.timerDiv,
     config.workTime,
-    "blue",
+    "work",
     config.workSound,
     config.currentAudio,
     () => {
       if (config.currentRound >= config.rounds) {
         config.phaseDiv.textContent = "✅ Done!";
         config.timerDiv.textContent = "0:00";
-        config.popup.style.backgroundColor = "lightgray";
+        applyPopupStyle(config.popup, "done");
         playOnceSound(config.currentAudio, config.doneSound);
       } else {
         // Rest Phase
@@ -140,7 +154,7 @@ function startRound(config) {
           config.popup,
           config.timerDiv,
           config.restTime,
-          "red",
+          "rest",
           config.restSound,
           config.currentAudio,
           () => startRound(config),
