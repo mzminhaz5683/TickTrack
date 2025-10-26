@@ -44,6 +44,16 @@ async function startTimerSession(timerName, container, startButton) {
   const doneSound = document.getElementById("doneSound");
 
   // Prepare configuration
+  const workTimeInSeconds = Math.max(
+    timerConfig.work_time_in_minutes * 60,
+    timerConfig.work_time_in_seconds
+  );
+
+  const restTimeInSeconds = Math.max(
+    timerConfig.relax_time_in_minutes * 60,
+    timerConfig.relax_time_in_seconds
+  );
+
   const config = {
     popup,
     phaseDiv,
@@ -53,8 +63,8 @@ async function startTimerSession(timerName, container, startButton) {
     workSound,
     restSound,
     doneSound,
-    workTime: timerConfig.work_time_in_minutes * 60,
-    restTime: timerConfig.relax_time_in_minutes * 60,
+    workTime: workTimeInSeconds,
+    restTime: restTimeInSeconds,
     rounds: timerConfig.round,
     currentRound: 0,
     interval: null,
