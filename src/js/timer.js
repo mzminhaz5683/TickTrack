@@ -7,9 +7,22 @@ function playSound(currentAudio, sound) {
   if (currentAudio.audio) {
     currentAudio.audio.pause();
     currentAudio.audio.currentTime = 0;
+    currentAudio.audio.loop = false; // stop previous looping
   }
   currentAudio.audio = sound;
-  if (sound) sound.play();
+  if (sound) {
+    sound.loop = true; // loop while timer is running
+    sound.play();
+  }
+}
+
+// Stop audio
+function stopSound(currentAudio) {
+  if (currentAudio.audio) {
+    currentAudio.audio.pause();
+    currentAudio.audio.currentTime = 0;
+    currentAudio.audio.loop = false;
+  }
 }
 
 function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next, isPausedObj) {
@@ -40,21 +53,13 @@ function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next,
   return interval;
 }
 
-
 // Start a round (work + rest)
 function startRound(config) {
   if (config.currentRound >= config.rounds) {
     config.phaseDiv.textContent = "✅ Done!";
-    config.interval = startTimer(
-      config.popup,
-      config.timerDiv,
-      5,
-      "green",
-      config.doneSound,
-      config.currentAudio,
-      null,
-      config.isPausedObj
-    );
+    // Play done sound once
+    stopSound(config.currentAudio);          // stop any ongoing sound
+    if (config.doneSound) config.doneSound.play();
     return;
   }
 
@@ -68,17 +73,25 @@ function startRound(config) {
     config.workSound,
     config.currentAudio,
     () => {
-      config.phaseDiv.textContent = `💤 Rest - Round ${config.currentRound}`;
-      config.interval = startTimer(
-        config.popup,
-        config.timerDiv,
-        config.restTime,
-        "red",
-        config.restSound,
-        config.currentAudio,
-        () => startRound(config),
-        config.isPausedObj
-      );
+      // If this is the last round, go straight to Done
+      if (config.currentRound >= config.rounds) {
+        config.phaseDiv.textContent = "✅ Done!";
+        stopSound(config.currentAudio);
+        if (config.doneSound) config.doneSound.play();
+      } else {
+        // Otherwise, start rest
+        config.phaseDiv.textContent = `💤 Rest - Round ${config.currentRound}`;
+        config.interval = startTimer(
+          config.popup,
+          config.timerDiv,
+          config.restTime,
+          "red",
+          config.restSound,
+          config.currentAudio,
+          () => startRound(config),
+          config.isPausedObj
+        );
+      }
     },
     config.isPausedObj
   );
@@ -96,10 +109,7 @@ function togglePause(pauseBtn, currentAudio, isPausedObj) {
 // Quit timer and remove popup
 function quitTimer(config) {
   if (config.interval) clearInterval(config.interval);
-  if (config.currentAudio.audio) {
-    config.currentAudio.audio.pause();
-    config.currentAudio.audio.currentTime = 0;
-  }
+  stopSound(config.currentAudio);
 
   config.popup.remove();
   config.startButton.style.display = "inline-block";
