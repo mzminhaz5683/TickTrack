@@ -46,8 +46,6 @@ function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next,
   let remaining = duration;
   popup.style.backgroundColor = color;
 
-  playPhaseSound(currentAudio, sound, config, duration);
-
   const updateDisplay = () => {
     const min = Math.floor(remaining / 60);
     const sec = (remaining % 60).toString().padStart(2, "0");
@@ -61,6 +59,26 @@ function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next,
       remaining--;
       updateDisplay();
 
+      // Dynamically handle repeatSound changes
+      if (config.repeatSound) {
+        // Start/loop sound if not playing
+        if (!currentAudio.audio || currentAudio.audio.paused) {
+          stopSound(currentAudio);
+          currentAudio.audio = sound;
+          sound.loop = true;
+          sound.currentTime = 0;
+          sound.play();
+        } else if (!currentAudio.audio.loop) {
+          currentAudio.audio.loop = true;
+        }
+      } else {
+        // Stop looping and schedule max 5s
+        if (currentAudio.audio && currentAudio.audio.loop) {
+          currentAudio.audio.loop = false;
+          setTimeout(() => stopSound(currentAudio), Math.min(5000, remaining * 1000));
+        }
+      }
+
       if (remaining < 0) {
         clearInterval(interval);
         stopSound(currentAudio);
@@ -68,6 +86,20 @@ function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next,
       }
     }
   }, 1000);
+
+  // Play initially according to current config
+  if (config.repeatSound) {
+    currentAudio.audio = sound;
+    sound.loop = true;
+    sound.currentTime = 0;
+    sound.play();
+  } else {
+    currentAudio.audio = sound;
+    sound.loop = false;
+    sound.currentTime = 0;
+    sound.play();
+    setTimeout(() => stopSound(currentAudio), Math.min(5000, remaining * 1000));
+  }
 
   return interval;
 }

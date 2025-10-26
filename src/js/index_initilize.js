@@ -24,13 +24,22 @@ function getMaxInterval(timeInMinutes, timeInSeconds) {
   return Math.max(timeInMinutes * 60, timeInSeconds);
 }
 
-function manageSoundRepeatation(config) {
+function syncRepeatCheckboxes(config) {
   const repeatCheckboxMain = document.getElementById("repeatSoundMain");
   const repeatCheckboxPopup = document.getElementById("repeatSoundPopup");
+
+  if (!repeatCheckboxMain || !repeatCheckboxPopup) return;
+
+  // Initialize popup checkbox to main checkbox value
+  repeatCheckboxPopup.checked = repeatCheckboxMain.checked;
+
+  // Main checkbox listener
   repeatCheckboxMain.addEventListener("change", () => {
     config.repeatSound = repeatCheckboxMain.checked;
     repeatCheckboxPopup.checked = repeatCheckboxMain.checked; // sync popup
   });
+
+  // Popup checkbox listener
   repeatCheckboxPopup.addEventListener("change", () => {
     config.repeatSound = repeatCheckboxPopup.checked;
     repeatCheckboxMain.checked = repeatCheckboxPopup.checked; // sync main
@@ -90,7 +99,7 @@ async function startTimerSession(timerName, container, startButton) {
   bindQuitButton(config);
   bindPauseButton(config);
   bindKeyboardControls(config);
-  manageSoundRepeatation(config);
+  syncRepeatCheckboxes(config);
 }
 
 // ===========================
