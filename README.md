@@ -153,7 +153,7 @@ TickTrack/
 │   ├── html/
 │   │   └── timer.html
 │   └── js/
-│       ├── run_exercise.js
+│       ├── index_initilize.js
 │       └── timer.js
 ├── time_manage.js      <-- timers object here
 └── timer_sounds/      <-- Audio files here

@@ -20,6 +20,23 @@ function initTimerButtons() {
   }
 }
 
+function getMaxInterval(timeInMinutes, timeInSeconds) {
+  return Math.max(timeInMinutes * 60, timeInSeconds);
+}
+
+function manageSoundRepeatation(config) {
+  const repeatCheckboxMain = document.getElementById("repeatSoundMain");
+  const repeatCheckboxPopup = document.getElementById("repeatSoundPopup");
+  repeatCheckboxMain.addEventListener("change", () => {
+    config.repeatSound = repeatCheckboxMain.checked;
+    repeatCheckboxPopup.checked = repeatCheckboxMain.checked; // sync popup
+  });
+  repeatCheckboxPopup.addEventListener("change", () => {
+    config.repeatSound = repeatCheckboxPopup.checked;
+    repeatCheckboxMain.checked = repeatCheckboxPopup.checked; // sync main
+  });
+}
+
 // ===========================
 // Start a timer session
 // ===========================
@@ -30,10 +47,11 @@ async function startTimerSession(timerName, container, startButton) {
   const response = await fetch("./src/html/timer.html");
   container.innerHTML = await response.text();
 
-  // Hide start button
+  // Hide start buttons
   startButton.style.display = "none";
 
   // Grab popup elements
+  const repeatCheckboxMain = document.getElementById("repeatSoundMain");
   const popup = document.getElementById("timerPopup");
   const phaseDiv = document.getElementById("phase");
   const timerDiv = document.getElementById("timer");
@@ -42,17 +60,6 @@ async function startTimerSession(timerName, container, startButton) {
   const workSound = document.getElementById("workSound");
   const restSound = document.getElementById("restSound");
   const doneSound = document.getElementById("doneSound");
-
-  // Prepare configuration
-  const workTimeInSeconds = Math.max(
-    timerConfig.work_time_in_minutes * 60,
-    timerConfig.work_time_in_seconds
-  );
-
-  const restTimeInSeconds = Math.max(
-    timerConfig.relax_time_in_minutes * 60,
-    timerConfig.relax_time_in_seconds
-  );
 
   const config = {
     popup,
@@ -63,8 +70,9 @@ async function startTimerSession(timerName, container, startButton) {
     workSound,
     restSound,
     doneSound,
-    workTime: workTimeInSeconds,
-    restTime: restTimeInSeconds,
+    workTime: getMaxInterval(timerConfig.work_time_in_minutes, timerConfig.work_time_in_seconds),
+    restTime: getMaxInterval(timerConfig.relax_time_in_minutes, timerConfig.relax_time_in_seconds),
+    repeatSound: repeatCheckboxMain.checked,
     rounds: timerConfig.round,
     currentRound: 0,
     interval: null,
@@ -79,9 +87,10 @@ async function startTimerSession(timerName, container, startButton) {
   startRound(config);
 
   // Bind buttons and keyboard
-  bindPauseButton(config);
   bindQuitButton(config);
+  bindPauseButton(config);
   bindKeyboardControls(config);
+  manageSoundRepeatation(config);
 }
 
 // ===========================

@@ -2,19 +2,28 @@
 // Audio Helpers
 // =======================
 
-// Play looping sound (for work/rest)
-function playLoopingSound(currentAudio, sound) {
-  stopSound(currentAudio);         // stop any previous sound
+// Play looping sound (for work/rest) with repeatSound support
+function playPhaseSound(currentAudio, sound, config, phaseDuration) {
+  stopSound(currentAudio);
   if (!sound) return;
 
   currentAudio.audio = sound;
-  sound.loop = true;
-  sound.play();
+
+  if (config.repeatSound) {
+    sound.loop = true;
+    sound.play();
+  } else {
+    sound.loop = false;
+    sound.currentTime = 0;
+    sound.play();
+    // Stop after max 5 seconds or phase duration if shorter
+    const maxPlay = Math.min(5000, phaseDuration * 1000);
+    setTimeout(() => stopSound(currentAudio), maxPlay);
+  }
 }
 
-// Play one-time sound (for Done)
 function playOnceSound(currentAudio, sound) {
-  stopSound(currentAudio);         // stop any previous sound
+  stopSound(currentAudio);
   if (!sound) return;
 
   currentAudio.audio = sound;
@@ -22,7 +31,6 @@ function playOnceSound(currentAudio, sound) {
   sound.play();
 }
 
-// Stop any current sound
 function stopSound(currentAudio) {
   if (currentAudio.audio) {
     currentAudio.audio.pause();
@@ -34,28 +42,28 @@ function stopSound(currentAudio) {
 // =======================
 // Timer Function
 // =======================
-
-function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next, isPausedObj) {
+function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next, isPausedObj, config) {
   let remaining = duration;
   popup.style.backgroundColor = color;
 
-  playLoopingSound(currentAudio, sound);  // work/rest sounds always loop
+  playPhaseSound(currentAudio, sound, config, duration);
 
-  // Update display immediately
-  const min = Math.floor(remaining / 60);
-  const sec = (remaining % 60).toString().padStart(2, "0");
-  timerDiv.textContent = `${min}:${sec}`;
+  const updateDisplay = () => {
+    const min = Math.floor(remaining / 60);
+    const sec = (remaining % 60).toString().padStart(2, "0");
+    timerDiv.textContent = `${min}:${sec}`;
+  };
+
+  updateDisplay();
 
   const interval = setInterval(() => {
     if (!isPausedObj.value) {
       remaining--;
-      const min = Math.floor(remaining / 60);
-      const sec = (remaining % 60).toString().padStart(2, "0");
-      timerDiv.textContent = `${min}:${sec}`;
+      updateDisplay();
 
       if (remaining < 0) {
         clearInterval(interval);
-        stopSound(currentAudio);        // stop looping sound when phase ends
+        stopSound(currentAudio);
         if (next) next();
       }
     }
@@ -70,13 +78,15 @@ function startTimer(popup, timerDiv, duration, color, sound, currentAudio, next,
 function startRound(config) {
   if (config.currentRound >= config.rounds) {
     config.phaseDiv.textContent = "✅ Done!";
-    config.timerDiv.textContent = "0:00";  // Reset timer display
-    config.popup.style.backgroundColor = "gray";  // set Done color
-    playOnceSound(config.currentAudio, config.doneSound);  // play Done sound once
+    config.timerDiv.textContent = "0:00";
+    config.popup.style.backgroundColor = "lightgray";
+    playOnceSound(config.currentAudio, config.doneSound);
     return;
   }
 
   config.currentRound++;
+
+  // Work Phase
   config.phaseDiv.textContent = `🔥 Work - Round ${config.currentRound}`;
   config.interval = startTimer(
     config.popup,
@@ -86,35 +96,35 @@ function startRound(config) {
     config.workSound,
     config.currentAudio,
     () => {
-      // Last round? Skip rest and go straight to Done
       if (config.currentRound >= config.rounds) {
         config.phaseDiv.textContent = "✅ Done!";
-        config.timerDiv.textContent = "0:00";  // Reset timer display
-        config.popup.style.backgroundColor = "gray";  // set Done color
-        playOnceSound(config.currentAudio, config.doneSound);  // play Done sound once
+        config.timerDiv.textContent = "0:00";
+        config.popup.style.backgroundColor = "lightgray";
+        playOnceSound(config.currentAudio, config.doneSound);
       } else {
-        // Otherwise, start rest phase
+        // Rest Phase
         config.phaseDiv.textContent = `💤 Rest - Round ${config.currentRound}`;
         config.interval = startTimer(
           config.popup,
           config.timerDiv,
           config.restTime,
-          "green",
+          "red",
           config.restSound,
           config.currentAudio,
           () => startRound(config),
-          config.isPausedObj
+          config.isPausedObj,
+          config
         );
       }
     },
-    config.isPausedObj
+    config.isPausedObj,
+    config
   );
 }
 
 // =======================
 // Pause/Resume
 // =======================
-
 function togglePause(pauseBtn, currentAudio, isPausedObj) {
   isPausedObj.value = !isPausedObj.value;
   pauseBtn.textContent = isPausedObj.value ? "▶️ Resume" : "⏸ Pause";
@@ -127,7 +137,6 @@ function togglePause(pauseBtn, currentAudio, isPausedObj) {
 // =======================
 // Quit Timer
 // =======================
-
 function quitTimer(config) {
   if (config.interval) clearInterval(config.interval);
   stopSound(config.currentAudio);
