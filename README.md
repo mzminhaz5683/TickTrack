@@ -96,14 +96,46 @@ If you want to replace the audio for any phase:
 
 ---
 
+## Running the Timer Locally
+
+You can run the timer as a local server to properly load JS, CSS, and audio files. Two scripts are provided:
+
+### Linux/macOS
+
+```bash
+./runner.sh
+```
+
+* Starts a BusyBox HTTP server.
+* Opens at `http://127.0.0.1:8080/index.html`.
+* If port 8080 is in use, the script shows the PID and asks whether to kill it (default Yes).
+
+### Windows
+
+```bat
+runner.bat
+```
+
+* Starts a PowerShell-based HTTP server.
+* Opens at `http://127.0.0.1:8080/index.html`.
+* If port 8080 is in use, the script shows the process ID and asks whether to terminate it (default Yes).
+
+> ✅ After starting, open your browser and navigate to `http://127.0.0.1:8080/index.html`.
+
+---
+
 ## Usage
 
-1. Open `run_exercise.html` in a browser.
-2. Click on a timer button to start the session.
+1. Open the page via the local server.
+2. Click a timer button to start the session.
 3. The timer popup shows the current phase (work/rest), countdown, and controls.
-4. Use the **Pause** button or **Spacebar** to pause/resume.
-5. Use the **Quit** button or **Escape key** to stop the timer and close the popup.
-6. When all rounds are completed, the popup background turns **light gray**, the timer shows `0:0`, and the done sound plays once.
+4. Use **Pause** button or **Spacebar** to pause/resume.
+5. Use **Quit** button or **Escape key** to stop the timer and close the popup.
+6. When all rounds are completed:
+
+   * Popup background turns **light gray**.
+   * Timer shows `0:0`.
+   * Done sound plays **once**.
 
 ---
 
@@ -111,8 +143,10 @@ If you want to replace the audio for any phase:
 
 ```
 TickTrack/
+├── index.html
 ├── README.md
-├── run_exercise.html
+├── runner.bat       <-- Windows server script
+├── runner.sh        <-- Linux/macOS server script
 ├── src/
 │   ├── css/
 │   │   └── style.css
@@ -122,7 +156,7 @@ TickTrack/
 │       ├── run_exercise.js
 │       └── timer.js
 ├── time_manage.js      <-- timers object here
-└── timer_sounds/      <-- Sould dictionary here
+└── timer_sounds/      <-- Audio files here
     ├── done.mp3
     ├── rest_start.mp3
     └── work_start.mp3
@@ -131,3 +165,4 @@ TickTrack/
 * `time_manage.js` contains the `timers` object.
 * `timer_sounds/` contains the audio files for work/rest/done phases.
 * `src/html/timer.html` defines the popup HTML elements with `<audio>` IDs: `workSound`, `restSound`, `doneSound`.
+* `runner.sh` and `runner.bat` start a local server to run the timer correctly.
