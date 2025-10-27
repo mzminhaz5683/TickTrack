@@ -1,5 +1,5 @@
 const timers = {
-  'jumper': {
+  'Jogging (Light)': {
     'work_time_in_minutes': 1,
     'relax_time_in_minutes': 0,
     'work_time_in_seconds': 0,
