@@ -22,5 +22,17 @@ if [ -n "$PID" ]; then
     echo ""
 fi
 
+
+# -----------------------------
+# As we can't execute any command after starting server (without stopping it),
+# so we open the url in browser first and then stat server.
+# The window will refresh automatically when the server is active.
+# -----------------------------
+google-chrome --new-window "http://$localHostIp:$PORT/$initHtml" >/dev/null 2>&1 &
+
+
+# -----------------------------
+# Run Local Server
+# -----------------------------
 echo "Starting server at http://$localHostIp:$PORT/$initHtml"
 busybox httpd -f -p $localHostIp:$PORT
